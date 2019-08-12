@@ -59,43 +59,58 @@ TEMPLATES = [
     },
 ]
 
-DUMMY = "dummy"
-STRIPE = "stripe"
+DUMMY = 'dummy'
+STRIPE = 'stripe'
+NETAXEPT = 'netaxept'
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway"),
-    STRIPE: pgettext_lazy("Payment method name", "Stripe"),
+    DUMMY: 'Dummy gateway',
+    STRIPE: 'Stripe',
+    NETAXEPT: 'Netaxept',
 }
 
 PAYMENT_GATEWAYS = {
     DUMMY: {
-        "module": "payment.gateways.dummy",
-        "config": {
-            "auto_capture": True,
-            "connection_params": {},
-            "template_path": "payment/dummy.html",
-        },
+        'module': 'payment.gateways.dummy',
+        'config': {
+            'auto_capture': True,
+            'connection_params': {},
+            'template_path': 'payment/dummy.html',
+        }
     },
     STRIPE: {
-        "module": "payment.gateways.stripe",
-        "config": {
-            "auto_capture": True,
-            "template_path": "payment/stripe.html",
-            "connection_params": {
-                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
-                "store_name": os.environ.get("STRIPE_STORE_NAME", "skioo shop"),
-                "store_image": os.environ.get("STRIPE_STORE_IMAGE", None),
-                "prefill": os.environ.get("STRIPE_PREFILL", True),
-                "remember_me": os.environ.get("STRIPE_REMEMBER_ME", False),
-                "locale": os.environ.get("STRIPE_LOCALE", "auto"),
-                "enable_billing_address": os.environ.get(
-                    "STRIPE_ENABLE_BILLING_ADDRESS", False
+        'module': 'payment.gateways.stripe',
+        'config': {
+            'auto_capture': True,
+            'template_path': 'payment/stripe.html',
+            'connection_params': {
+                'public_key': os.environ.get('STRIPE_PUBLIC_KEY'),
+                'secret_key': os.environ.get('STRIPE_SECRET_KEY'),
+                'store_name': os.environ.get('STRIPE_STORE_NAME', 'skioo shop'),
+                'store_image': os.environ.get('STRIPE_STORE_IMAGE', None),
+                'prefill': os.environ.get('STRIPE_PREFILL', True),
+                'remember_me': os.environ.get('STRIPE_REMEMBER_ME', False),
+                'locale': os.environ.get('STRIPE_LOCALE', 'auto'),
+                'enable_billing_address': os.environ.get(
+                    'STRIPE_ENABLE_BILLING_ADDRESS', False
                 ),
-                "enable_shipping_address": os.environ.get(
-                    "STRIPE_ENABLE_SHIPPING_ADDRESS", False
-                ),
-            },
-        },
+                'enable_shipping_address': os.environ.get(
+                    'STRIPE_ENABLE_SHIPPING_ADDRESS', False
+                )
+            }
+        }
+    },
+    NETAXEPT: {
+        'module': 'payment.gateways.netaxept',
+        'config': {
+            'auto_capture': True,
+            'template_path': 'payment/netaxept.html',
+            'connection_params': {
+                'merchant_id': os.environ.get('NETAXEPT_MERCHANT_ID'),
+                'token': os.environ.get('NETAXEPT_TOKEN'),
+                'wsdl': os.environ.get('NETAXEPT_WSDL') or 'https://epayment-test.bbs.no/netaxept.svc?wsdl',
+                'terminal': os.environ.get('NETAXEPT_TERMINAL') or 'https://epayment-test.bbs.no/Terminal/default.aspx',
+            }
+        }
     },
 }

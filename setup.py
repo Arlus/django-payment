@@ -13,9 +13,10 @@ setup(
     packages=[
         'payment',
         'payment.gateways',
+        'payment.migrations',
         'payment.gateways.dummy',
         'payment.gateways.stripe',
-        'payment.migrations',
+        'payment.gateways.netaxept',
     ],
     package_data={
         'payment': ['locale/*/LC_MESSAGES/*.*', ]},
@@ -27,6 +28,8 @@ setup(
         'stripe',
         'django-countries',
         'dataclasses',
+        'suds2',
+        'requests',
     ],
     license='MIT',
     classifiers=[
