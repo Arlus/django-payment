@@ -64,7 +64,7 @@ Install the django-payment dependencies (the example project has identical depen
 
 Then point your browser to:
 
-    http://127.0.0.1:8000/admin
+    http://127.0.0.1:8000/admin/
     
 Create a new payment.
 
