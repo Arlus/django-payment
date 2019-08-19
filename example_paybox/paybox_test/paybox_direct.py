@@ -201,7 +201,8 @@ class PayboxDirectTransaction:
                  "3DCAVVALGO": "", "3DECI": "", "3DENROLLED": "", "3DERROR": "", "3DSIGNVAL": "",
                  "3DSTATUS": "", "3DXID": "", "Check": ""}
         """
-        card_verification_string = "IdMerchant={0},IdSession={1},Amount={2},Currency={3},CCNumber={4},CCExpDate={5},CVVCode={6},URLHttpDirect={7}".format(settings.PAYBOX_IDENTIFIANT, session_id, self.MANDATORY['MONTANT'], self.MANDATORY['DEVISE'], self.MANDATORY['PORTEUR'], self.MANDATORY['DATEVAL'],  self.ACCESSORY['CVV'], self.card_verification_api_redirect_url)
+        card_verification_string = "IdMerchant={0},IdSession={1},Amount={2},Currency={3},CCNumber={4},CCExpDate={5},CVVCode={6},URLHttpDirect={7}".format(settings.PAYBOX_IDENTIFIANT, session_id, self.REQUIRED['MONTANT'], self.REQUIRED['DEVISE'], self.REQUIRED['PORTEUR'], self.REQUIRED['DATEVAL'],  self.OPTIONAL['CVV'], self.card_verification_api_redirect_url)
+
         remote_mpi_call = requests.post(self.remote_mpi_url(), data=card_verification_string)
         response = dict(parse.parse_qsl(remote_mpi_call.text))
         try:
@@ -222,7 +223,7 @@ class PayboxDirectTransaction:
                   "REFABONNE": "", "REMISE": "", "SHA-1": "", "SITE": "", "STATUS": "",
                   "TYPECARTE": ""}
         """
-        self.MANDATORY['TYPE'] = operation_type
+        self.REQUIRED['TYPE'] = operation_type
         if self.secure_3d:
             if self.id3d is None:
                 raise InvalidParametersException(message="3D Secure payments require mpi authentication.")
@@ -231,16 +232,16 @@ class PayboxDirectTransaction:
                 message="You have called a Paybox Direct Plus operation on a Paybox Direct method.")
         if operation_type in self.DELAY_OPERATIONS:
             sleep(1)
-        self.MANDATORY['NUMQUESTION'] = numquestion
-        payload = {**self.MANDATORY, **self.ACCESSORY}
+        self.REQUIRED['NUMQUESTION'] = numquestion
+        payload = {**self.REQUIRED, **self.OPTIONAL}
         session = requests.Session()
         paybox_call = session.post(self.action_url(), data=payload)
         response = dict(parse.parse_qsl(paybox_call.text))
         if response['CODEREPONSE'] in self.RETRY_CODES:
             self.post_to_paybox(numquestion, operation_type)
-        if self.MANDATORY['TYPE'] == "00001":
-            self.ACCESSORY['NUMAPPEL'] = response['NUMAPPEL']
-            self.ACCESSORY['NUMTRANS'] = response['NUMTRANS']
+        if self.REQUIRED['TYPE'] == "00001":
+            self.OPTIONAL['NUMAPPEL'] = response['NUMAPPEL']
+            self.OPTIONAL['NUMTRANS'] = response['NUMTRANS']
         return response
 
     def construct_html_form(self):
@@ -249,33 +250,33 @@ class PayboxDirectTransaction:
         :return: str <form>
         """
 
-        accessory_fields = "\n".join(
+        optional_fields = "\n".join(
             [
                 "<input type='hidden' name='{0}' value='{1}'>".format(
-                    field, self.ACCESSORY[field]
+                    field, self.OPTIONAL[field]
                 )
-                for field in self.ACCESSORY
-                if self.ACCESSORY[field]
+                for field in self.OPTIONAL
+                if self.OPTIONAL[field]
             ]
         )
 
         html = """<form method=POST action="{action_url}">
-            <input name = "DATEQ" value = "{mandatory[DATEQ]}" type="text">
-            <input name = "TYPE" value = "{mandatory[TYPE]}" type="text">
-            <input name = "NUMQUESTION" value = "{mandatory[NUMQUESTION]}" type="text">
-            <input name = "MONTANT" value = "{mandatory[MONTANT]}" type="text">
-            <input name = "SITE" value = "{mandatory[SITE]}" type="text">
-            <input name = "RANG" value = "{mandatory[RANG]}" type="text">
-            <input name="REFERENCE" value="{mandatory[REFERENCE]}" type="text">
-            <input name="REFABONNE" value="{mandatory[REFABONNE]}" type="text">
-            <input name="PORTEUR" value="{mandatory[PORTEUR]}" type="text">
-            <input name="DATEVAL" value="{mandatory[DATEVAL]}" type="text">
-            <input name="NUMAPPEL" value="{mandatory[NUMAPPEL]}" type="text">
-            <input name="NUMTRANS" value="{mandatory[NUMTRANS]}" type="text">
-            {accessory}
+            <input name = "DATEQ" value = "{required[DATEQ]}" type="text">
+            <input name = "TYPE" value = "{required[TYPE]}" type="text">
+            <input name = "NUMQUESTION" value = "{required[NUMQUESTION]}" type="text">
+            <input name = "MONTANT" value = "{required[MONTANT]}" type="text">
+            <input name = "SITE" value = "{required[SITE]}" type="text">
+            <input name = "RANG" value = "{required[RANG]}" type="text">
+            <input name="REFERENCE" value="{required[REFERENCE]}" type="text">
+            <input name="REFABONNE" value="{required[REFABONNE]}" type="text">
+            <input name="PORTEUR" value="{required[PORTEUR]}" type="text">
+            <input name="DATEVAL" value="{required[DATEVAL]}" type="text">
+            <input name="NUMAPPEL" value="{required[NUMAPPEL]}" type="text">
+            <input name="NUMTRANS" value="{required[NUMTRANS]}" type="text">
+            {optional}
             <input type="submit" value="Pay">
         </form>"""
 
         return html.format(
-            action=self.action_url(), mandatory=self.MANDATORY, accessory=accessory_fields
+            action=self.action_url(), required=self.REQUIRED, optional=optional_fields
         )

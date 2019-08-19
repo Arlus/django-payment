@@ -17,8 +17,8 @@ from django.conf import settings
 class PayboxSystemTransaction:
     """A Paybox System transaction, from your server to the customer's browser, and from Paybox server to yours
     Attributes:
-        MANDATORY   The values nedded to call for a payment
-        ACCESSORY   The values you may add to modify Paybox behavior
+        REQUIRED   The values nedded to call for a payment
+        OPTIONAL   The values you may add to modify Paybox behavior
         RESPONSE_CODES  Every response code Paybox may return after a payment attempt
     """
 
@@ -273,7 +273,7 @@ class PayboxSystemTransaction:
         self.REQUIRED["PBX_DEVISE"] = self.REQUIRED.get("devise", "978")
         if self.authorize_without_capture:
             self.OPTIONAL["PBX_AUTOSEULE"] = 'O'
-        # string to sign. Made of the Mandatory variables in a precise order.
+        # string to sign. Made of the required variables in a precise order.
         tosign = (
                 "PBX_SITE=%(PBX_SITE)s&PBX_RANG=%(PBX_RANG)s&PBX_IDENTIFIANT=%(PBX_IDENTIFIANT)s&PBX_TOTAL=%(PBX_TOTAL)s&PBX_DEVISE=%(PBX_DEVISE)s&PBX_CMD=%(PBX_CMD)s&PBX_PORTEUR=%(PBX_PORTEUR)s&PBX_RETOUR=%(PBX_RETOUR)s&PBX_HASH=%(PBX_HASH)s&PBX_TIME=%(PBX_TIME)s"
                 % self.REQUIRED
