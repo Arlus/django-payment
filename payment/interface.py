@@ -49,6 +49,7 @@ class PaymentData:
     customer_ip_address: str
     customer_email: str
     metadata: Dict[str, str]
+    order_id: Optional[int]
 
 
 @dataclass

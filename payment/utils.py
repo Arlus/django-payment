@@ -146,6 +146,17 @@ def clean_capture(payment: Payment, amount: Money):
         raise PaymentError("Unable to charge more than un-captured amount.")
 
 
+def paybox_clean_capture(payment: Payment, amount: Money):
+    """Check if payment can be captured."""
+    if amount.amount <= 0:
+        raise PaymentError("Amount should be a positive number.")
+    # Commented out because you can capture directly
+    # if not payment.can_capture():
+    #     raise PaymentError("This payment cannot be captured.")
+    if amount > payment.total or amount > (payment.total - payment.captured_amount):
+        raise PaymentError("Unable to charge more than un-captured amount.")
+
+
 def clean_authorize(payment: Payment):
     """Check if payment can be authorized."""
     if not payment.can_authorize():
@@ -214,6 +225,46 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
         raise PaymentError(payment_transaction.error or GENERIC_TRANSACTION_ERROR)
 
     return payment_transaction
+
+
+def call_paybox_gateway(operation_type, payment, payment_token, **extra_params):
+    """Helper that calls the passed gateway function and handles exceptions.
+
+    Additionally does validation of the returned gateway response.
+    """
+    gateway, gateway_config = get_payment_gateway(payment.gateway)
+
+    payment_information = create_payment_information(
+        payment, payment_token, **extra_params
+    )
+
+    try:
+        func = get_gateway_operation_func(gateway, operation_type)
+    except AttributeError:
+        error_msg = "Gateway doesn't implement {} operation".format(operation_type.name)
+        logger.exception(error_msg)
+        raise PaymentError(error_msg)
+
+    # The transaction kind is provided as a default value
+    # for creating transactions when gateway has invalid response
+    # The PROCESS_PAYMENT operation has CAPTURE as default transaction kind
+    # For other operations, the transaction kind is same wtih operation type
+    default_transaction_kind = TransactionKind.CAPTURE
+    if operation_type != OperationType.PROCESS_PAYMENT:
+        default_transaction_kind = getattr(
+            TransactionKind, OperationType(operation_type).name
+        )
+
+    # Validate the default transaction kind
+    if default_transaction_kind not in dict(TransactionKind.CHOICES):
+        error_msg = "The default transaction kind is invalid"
+        logger.exception(error_msg)
+        raise PaymentError(error_msg)
+    action = func(
+        payment_information=payment_information, config=gateway_config
+    )
+
+    return action
 
 
 def validate_gateway_response(response: GatewayResponse):
@@ -309,6 +360,62 @@ def gateway_capture(payment: Payment, amount: Money = None) -> Transaction:
 
     _gateway_postprocess(transaction, payment)
     return transaction
+
+
+@require_active_payment
+def paybox_gateway_authorize(payment: Payment) -> Transaction:
+    """Authorizes the payment and creates relevant transaction.
+
+    Args:
+     - payment_token: One-time-use reference to payment information.
+    """
+    clean_authorize(payment)
+    form = call_paybox_gateway(operation_type=OperationType.AUTH, payment=payment, payment_token="")
+    return form
+
+
+@require_active_payment
+def paybox_gateway_capture(payment: Payment, amount: Money = None) -> Transaction:
+    """Captures the money that was reserved during the authorization stage."""
+    if amount is None:
+        amount = payment.get_charge_amount()
+    paybox_clean_capture(payment, amount)
+
+    # Commenting because you can capture without auth step
+    # auth_transaction = payment.transactions.filter(
+    #     kind=TransactionKind.AUTH, is_success=True
+    # ).first()
+    # if auth_transaction is None:
+    #     raise PaymentError("Cannot capture unauthorized transaction")
+    payment_token = ""
+
+    form = call_paybox_gateway(
+        operation_type=OperationType.CAPTURE,
+        payment=payment,
+        payment_token=payment_token,
+        amount=amount,
+    )
+
+    return form
+
+
+@require_active_payment
+def paybox_gateway_refund(payment) -> Transaction:
+    if not payment.can_void():
+        raise PaymentError("Only pre-authorized transactions can be voided.")
+
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True
+    ).first()
+    if auth_transaction is None:
+        raise PaymentError("Cannot void unauthorized transaction")
+    payment_token = auth_transaction.token
+
+    form = call_gateway(
+        operation_type=OperationType.VOID, payment=payment, payment_token=payment_token
+    )
+
+    return form
 
 
 @require_active_payment
