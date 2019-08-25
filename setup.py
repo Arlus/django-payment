@@ -27,6 +27,7 @@ setup(
         'stripe',
         'django-countries',
         'dataclasses',
+        'ccy'
     ],
     license='MIT',
     classifiers=[
