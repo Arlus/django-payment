@@ -126,7 +126,7 @@ class PayboxSystemClient:
         """
         self.REQUIRED["PBX_TOTAL"] = amount
         self.REQUIRED["PBX_DEVISE"] = currency
-        self.REQUIRED["PBX_CMD"] = "ABCDE"
+        self.REQUIRED["PBX_CMD"] = cmd
         self.REQUIRED["PBX_PORTEUR"] = email
         if operation_type == "Authorization":
             self.OPTIONAL["PBX_AUTOSEULE"] = 'O'
