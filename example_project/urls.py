@@ -3,12 +3,14 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
-from views import stripe
-from views import view_payment
+from views import stripe, view_payment, paybox
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('payment/<payment_id>', view_payment, name='view_payment'),
+    path('<payment_id>/paybox/authorize', paybox.authorize, name='paybox_authorize'),
+    path('<payment_id>/paybox/capture', paybox.capture, name='paybox_capture'),
+    # path('<payment_id>/paybox/refund', paybox.refund, name='aybox_refund'),
 ]
 
 stripe_urls = [
@@ -21,6 +23,10 @@ stripe_urls = [
          name='stripe_payment_intents_confirm_payment'),
     path('<payment_id>/stripe/capture', stripe.capture, name='stripe_capture'),
     path('<payment_id>/stripe/refund', stripe.refund, name='stripe_refund'),
+
+    # path('<payment_id>/paybox/checkout', paybox.checkout, name='paybox_checkout'),
+    # path('<payment_id>/paybox/process', paybox.process, name='paybox_process'),
+
 ]
 
 

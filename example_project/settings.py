@@ -82,10 +82,13 @@ CURRENCIES = ['USD', 'EUR', 'JPY', 'GBP', 'CAD', 'CHF']
 
 DUMMY = "dummy"
 STRIPE = "stripe"
+PAYBOX = "paybox"
+
 
 CHECKOUT_PAYMENT_GATEWAYS = {
     DUMMY: "Dummy gateway",
     STRIPE: "Stripe",
+    PAYBOX: "paybox"
 }
 
 PAYMENT_GATEWAYS = {
@@ -119,4 +122,26 @@ PAYMENT_GATEWAYS = {
             },
         },
     },
+    PAYBOX: {
+        "module": "payment.gateways.paybox",
+        "config": {
+            "auto_capture": True,
+            "template_path": "payment/paybox.html",
+            "connection_params": {
+                "public_key": os.environ.get("PAYBOX_PUBLIC_KEY") or "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF",
+                "site": os.environ.get("PAYBOX_SITE") or "1999888",
+                "rang": os.environ.get("PAYBOX_RANG") or "32",
+                "identifiant": os.environ.get("PAYBOX_IDENTIFIANT") or "2",
+                "production": False,
+                "transaction_confirmation_url": os.environ.get("PAYBOX_TRANSACTION_CONFIRMATION_URL") or "http://xyz.xyn",
+                "transaction_valid_url": os.environ.get("PAYBOX_TRANSACTION_VALIDATION_URL") or "http://xyz.xyn",
+                "transaction_rejection_url": os.environ.get("PAYBOX_TRANSACTION_REJECTION_URL") or "http://xyz.xyn",
+                "transaction_cancel_url": os.environ.get("PAYBOX_TRANSACTION_CANCEL_URL") or "http://xyz.xyn",
+                "ipn_url": os.environ.get("PAYBOX_IPN_URL") or "http://xyz.xyn",
+                "language": "GBR"
+
+            },
+        },
+    }
 }
+
