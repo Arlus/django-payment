@@ -1,0 +1,34 @@
+<html>
+
+<body>
+
+<H3>Payment</H3>
+<ul>
+    <li>gateway: {{ payment.gateway }}</li>
+    <li>id: {{ payment.id }}</li>
+    <li>total: {{ payment.total }}</li>
+    <li>charge_status: {{ payment.charge_status }}</li>
+    <li>authorized amount: {{ payment.get_authorized_amount }}</li>
+    <li>captured amount: {{ payment.captured_amount }}</li>
+</ul>
+
+
+<H3>Operations</H3>
+<ul>
+{% if payment.gateway == 'stripe' %}
+    <li><a href="{% url 'stripe_elements_token' payment.id %}">Authorize - Elements token</a></li>
+    <li><a href="{% url 'stripe_checkout' payment.id %}">Authorize - Checkout</a></li>
+    <li><a href="{% url 'stripe_payment_intents_manual_flow' payment.id %}">Authorize - Payment intents manual flow</a>
+{% elif payment.gateway == 'netaxept' %}
+    <li><a href="{% url 'netaxept_register_and_goto_terminal' payment.id %}">Register and Goto Terminal</a></li>
+    {% if payment.token %}
+        <li><a href="{% url 'netaxept_query' payment.token %}">Query</a></li>
+    {% endif %}
+{% endif %}
+    <li><a href="{%url 'admin:payment_payment_change' payment.id %}">See payment in admin</a></li>
+</ul>
+
+</body>
+
+</html>
+

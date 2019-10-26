@@ -1,7 +1,6 @@
+from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any, Dict, Optional
-
-from dataclasses import dataclass
 
 
 @dataclass
@@ -14,7 +13,7 @@ class GatewayResponse:
     kind: str
     amount: Decimal
     currency: str
-    transaction_id: str
+    transaction_id: Optional[str]
     error: Optional[str]
     raw_response: Optional[Dict[str, str]] = None
 

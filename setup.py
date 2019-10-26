@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='django-payment',
-    version='0.8',
+    version='1.2',
     description='',
     long_description='',
     author='Nicholas Wolff',
@@ -13,12 +13,17 @@ setup(
     packages=[
         'payment',
         'payment.gateways',
+        'payment.migrations',
         'payment.gateways.dummy',
         'payment.gateways.stripe',
-        'payment.migrations',
+        'payment.gateways.netaxept',
     ],
     package_data={
-        'payment': ['locale/*/LC_MESSAGES/*.*', ]},
+        'payment': [
+            'locale/*/LC_MESSAGES/*.*',
+            'templates/admin/payment/*.html',
+        ]
+    },
     install_requires=[
         'Django>=2.2,<2.3',
         'django-money',
@@ -27,13 +32,15 @@ setup(
         'stripe',
         'django-countries',
         'dataclasses',
-        'ccy'
+        'ccy',
+        'django-import-export',
+        'requests',
+        'xmltodict'
     ],
     license='MIT',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
-        'Framework :: Django :: 2.1',
         'Framework :: Django :: 2.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
